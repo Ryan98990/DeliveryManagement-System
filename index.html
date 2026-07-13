@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超市送貨管理系統</title>
+  <style>
+:root {
+  --bg: #f3f6fb;
+  --card: #ffffff;
+  --text: #172033;
+  --muted: #6b7890;
+  --line: #dce4ef;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-deep: #173a8a;
+  --primary-soft: #eaf1ff;
+  --primary-pale: #f5f8ff;
+  --danger: #dc2626;
+  --danger-soft: #fff0f0;
+  --shadow: 0 16px 40px rgba(38, 68, 120, .10);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+button, input { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #173a8a 0%, #2563eb 58%, #3b82f6 100%);
+  color: white;
+  padding: 34px 0 38px;
+  box-shadow: 0 10px 30px rgba(29, 78, 216, .18);
+}
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255,255,255,.09);
+}
+.hero::before { width: 280px; height: 280px; right: 7%; top: -150px; }
+.hero::after { width: 170px; height: 170px; right: 22%; bottom: -125px; }
+.hero-inner, .container { width: min(1240px, calc(100% - 40px)); margin: auto; }
+.hero-inner { position: relative; z-index: 1; }
+.hero h1 {
+  margin: 7px 0 9px;
+  font-size: clamp(30px, 4vw, 46px);
+  letter-spacing: .02em;
+}
+.hero p:last-child { margin: 0; opacity: .9; font-weight: 600; }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 900; letter-spacing: .14em; opacity: .82; }
+.eyebrow.dark { color: var(--primary); opacity: 1; }
+
+.container { padding: 26px 0 56px; }
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+  gap: 8px;
+  padding: 7px;
+  background: #e6ecf5;
+  border: 1px solid #d8e1ee;
+  border-radius: 16px;
+  margin-bottom: 26px;
+  box-shadow: 0 8px 24px rgba(42, 62, 95, .05);
+}
+.tab {
+  border: 0;
+  padding: 14px 18px;
+  border-radius: 11px;
+  color: #52627a;
+  font-weight: 900;
+  background: transparent;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.tab:hover { color: var(--primary); background: rgba(255,255,255,.55); }
+.tab.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 9px 22px rgba(37, 99, 235, .24);
+}
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn .22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.section-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 16px; }
+.section-heading h2 { margin: 5px 0 0; font-size: 26px; }
+.section-heading.compact { margin-bottom: 18px; }
+.subtext, .card-heading p { color: var(--muted); margin: 7px 0 0; line-height: 1.65; }
+.notice {
+  padding: 15px 17px;
+  margin-bottom: 18px;
+  background: var(--primary-soft);
+  border: 1px solid #cbdcff;
+  border-left: 4px solid var(--primary);
+  border-radius: 12px;
+  line-height: 1.65;
+  color: #264169;
+}
+
+.table-shell {
+  overflow-x: auto;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  box-shadow: var(--shadow);
+}
+.schedule-table { width: 100%; min-width: 900px; border-collapse: collapse; }
+.schedule-table th, .schedule-table td {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 15px;
+  vertical-align: top;
+}
+.schedule-table th:last-child, .schedule-table td:last-child { border-right: 0; }
+.schedule-table tr:last-child td { border-bottom: 0; }
+.schedule-table thead th {
+  background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+  color: white;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: .02em;
+}
+.schedule-table tbody tr:hover td:not(.closed) { background: #fbfdff; }
+.day-cell {
+  width: 126px;
+  text-align: center;
+  vertical-align: middle !important;
+  font-weight: 900;
+  background: #f7f9fd;
+  color: #26354d;
+}
+.slot { min-height: 100px; }
+.delivery {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 11px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.delivery:last-child { border-bottom: 0; }
+.delivery-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border: 1px solid #cbdcff;
+  font-size: 12px;
+  font-weight: 900;
+}
+.delivery strong, .delivery span, .delivery small { display: block; }
+.delivery strong { color: #173a8a; }
+.delivery span { margin-top: 3px; }
+.delivery small { margin-top: 5px; color: var(--muted); }
+.empty { color: #98a3b5; text-align: center; padding: 28px 8px; }
+.closed {
+  background: #eef2f7;
+  color: #8793a6;
+  text-align: center;
+  vertical-align: middle !important;
+  font-weight: 900;
+}
+
+.stats-section {
+  margin-top: 25px;
+  padding: 23px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  box-shadow: var(--shadow);
+}
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; }
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 21px;
+  border: 1px solid #dce6f7;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #ffffff, var(--primary-pale));
+  transition: .2s ease;
+}
+.stat-card::after {
+  content: "";
+  position: absolute;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  right: -25px;
+  top: -25px;
+  background: rgba(37,99,235,.08);
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(37,99,235,.10); }
+.stat-card span { display: block; color: #34445e; font-weight: 900; }
+.stat-card strong { display: block; font-size: 42px; line-height: 1; margin: 12px 0 9px; color: var(--primary-dark); }
+.stat-card small { color: var(--muted); }
+
+.date-details {
+  margin-top: 15px;
+  border-top: 1px solid #dce6f7;
+  padding-top: 12px;
+}
+
+.date-details summary {
+  cursor: pointer;
+  color: var(--primary-dark);
+  font-weight: 900;
+  list-style: none;
+  user-select: none;
+}
+
+.date-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.date-details summary::after {
+  content: "⌄";
+  float: right;
+  font-size: 18px;
+  transition: transform .2s ease;
+}
+
+.date-details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.date-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.date-item {
+  padding: 10px 11px;
+  background: white;
+  border: 1px solid #dce6f7;
+  border-radius: 10px;
+}
+
+.date-item b,
+.date-item span,
+.date-item small {
+  display: block;
+}
+
+.date-item b {
+  color: #173a8a;
+  font-size: 14px;
+}
+
+.date-item span {
+  margin-top: 4px;
+  color: #52627a;
+  font-size: 13px;
+}
+
+.date-item small {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.no-date {
+  color: #98a3b5;
+  font-size: 13px;
+  padding: 6px 0;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.card-heading { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 18px; }
+.card-heading h3 { margin: 0; font-size: 21px; }
+.button {
+  border: 0;
+  border-radius: 11px;
+  padding: 11px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: .18s ease;
+}
+.button:hover { transform: translateY(-1px); }
+.button.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 8px 18px rgba(37,99,235,.22); }
+.button.secondary { background: var(--primary-soft); color: var(--primary-dark); border: 1px solid #cbdcff; }
+.button.danger { background: var(--danger); color: white; }
+
+.store-labels, .store-row {
+  display: grid;
+  grid-template-columns: 1fr 92px;
+  gap: 10px;
+}
+.store-labels { color: var(--muted); font-size: 12px; font-weight: 900; padding: 0 4px 8px; }
+.store-list { display: grid; gap: 10px; }
+.store-row { padding: 10px; border: 1px solid #e2e8f2; background: #fafcff; border-radius: 12px; }
+.store-row input, .edit-row input {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: var(--text);
+  transition: .18s ease;
+}
+.store-row input:focus, .edit-row input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37,99,235,.11);
+}
+
+.admin-day { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; }
+.admin-day-title {
+  padding: 14px 17px;
+  background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+  color: white;
+  font-weight: 900;
+}
+.admin-period { padding: 16px; border-top: 1px solid var(--line); }
+.admin-period:first-of-type { border-top: 0; }
+.period-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.period-head strong { font-size: 17px; color: #26354d; }
+.edit-list { display: grid; gap: 10px; }
+.edit-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.3fr 1fr 44px;
+  gap: 10px;
+  padding: 12px;
+  align-items: end;
+  background: #f8faff;
+  border: 1px solid #dfe7f3;
+  border-radius: 12px;
+}
+.field label { display: block; font-size: 12px; color: var(--muted); font-weight: 900; margin-bottom: 6px; }
+.remove {
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.savebar {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px;
+  margin-top: 18px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+}
+.toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  padding: 13px 17px;
+  color: white;
+  background: #172033;
+  border-radius: 11px;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: .2s;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+}
+.toast.show { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .edit-row { grid-template-columns: 1fr 1fr; }
+  .edit-row .note-field { grid-column: 1 / -1; }
+  .remove { width: 100%; }
+}
+@media (max-width: 620px) {
+  .hero-inner, .container { width: calc(100% - 20px); }
+  .hero { padding: 27px 0 30px; }
+  .tabs { margin-bottom: 20px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .card-heading { align-items: stretch; flex-direction: column; }
+  .store-labels { display: none; }
+  .store-row, .edit-row { grid-template-columns: 1fr; }
+  .edit-row .note-field { grid-column: auto; }
+  .savebar { flex-direction: column; }
+  .button { width: 100%; }
+}
+
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">DELIVERY MANAGEMENT</p>
+      <h1>超市送貨管理系統</h1>
+      <p>星期一至星期五：早上及下午｜星期六：只有早上｜星期日：休息</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs" aria-label="主要分頁">
+    <button class="tab active" data-tab="schedule">送貨表</button>
+    <button class="tab" data-tab="statistics">統計</button>
+    <button class="tab" data-tab="store">超市</button>
+    <button class="tab" data-tab="admin">管理</button>
+</nav>
+
+    <section id="schedule" class="panel active">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow dark">WEEKLY SCHEDULE</p>
+          <h2>本週送貨安排</h2>
+        </div>
+      </div>
+
+      <div class="notice">
+        每個時段可以安排多間超市。Farley、Sing Kwong、Emart、Everrise 等都屬於「超市名稱」，不是司機。
+      </div>
+
+      <div class="table-shell">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>星期</th>
+              <th>早上送貨地點</th>
+              <th>下午送貨地點</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="statistics" class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow dark">AUTOMATIC STATISTICS</p>
+          <h2>星期一至星期五送貨次數</h2>
+          <p class="subtext">系統會根據送貨表，自動計算各間超市出現了多少次。</p>
+        </div>
+      </div>
+
+      <section class="stats-section" style="margin-top: 0;">
+        <div id="autoStats" class="stats-grid"></div>
+      </section>
+    </section>
+
+   <section id="store" class="panel">
+
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow dark">STORE MANAGEMENT</p>
+      <h2>超市管理</h2>
+    </div>
+  </div>
+
+  <section class="card">
+
+    <div class="card-heading">
+      <div>
+        <h3>超市清單</h3>
+        <p>先建立常用超市，安排送貨時即可搜尋選擇。可新增不限數量。</p>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button id="addStore" class="button secondary">
+          ＋ 新增超市
+        </button>
+
+        <button id="saveStores" class="button primary">
+          儲存超市
+        </button>
+      </div>
+    </div>
+
+    <div class="store-labels">
+      <span>超市名稱</span>
+      <span></span>
+    </div>
+
+    <div id="storeList" class="store-list"></div>
+
+  </section>
+
+</section>
+
+<section id="admin" class="panel">
+
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow dark">ADMIN MANAGEMENT</p>
+            <h2>送貨管理</h2>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="card-heading">
+            <div>
+                <h3>星期一至星期六送貨安排</h3>
+                <p>每個早上或下午都可以新增多筆送貨。</p>
+            </div>
+        </div>
+
+        <div id="adminSchedule"></div>
+    </section>
+
+    <div class="savebar">
+        <button id="reset" class="button danger">重設全部資料</button>
+        <button id="save" class="button primary">儲存全部安排</button>
+    </div>
+
+</section>
+  </main>
+
+  <datalist id="storeOptions"></datalist>
+  <div id="toast" class="toast" role="status"></div>
+  <script>
+const STORAGE_KEY = "supermarketDeliveryManagerV4";
+const LEGACY_KEYS = ["farleyDeliveryTableV3", "farleyDeliveryManagerV2", "farleyDeliveryManager"];
+
+const dayConfig = [
+  ["星期一", ["早上", "下午"]],
+  ["星期二", ["早上", "下午"]],
+  ["星期三", ["早上", "下午"]],
+  ["星期四", ["早上", "下午"]],
+  ["星期五", ["早上", "下午"]],
+  ["星期六", ["早上"]]
+];
+
+const defaultData = {
+  stores: [
+    { id:createId("store"), supermarket:"Farley" },
+    { id:createId("store"), supermarket:"Sing Kwong" },
+    { id:createId("store"), supermarket:"Emart" },
+    { id:createId("store"), supermarket:"Everrise" }
+],
+  deliveries: []
+};
+
+let data = loadData();
+const $ = selector => document.querySelector(selector);
+
+function createId(prefix = "id") {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+
+/* 日期格式函數放在這裡 */
+function getCurrentWeekDate(dayName) {
+  const dayIndexes = {
+    "星期一": 0,
+    "星期二": 1,
+    "星期三": 2,
+    "星期四": 3,
+    "星期五": 4,
+    "星期六": 5,
+    "星期日": 6
+  };
+
+  const targetIndex = dayIndexes[dayName];
+
+  if (targetIndex === undefined) {
+    return dayName;
+  }
+
+  const today = new Date();
+
+  // JavaScript：星期日為 0，星期一為 1
+  const todayIndex = today.getDay() === 0
+    ? 6
+    : today.getDay() - 1;
+
+  const monday = new Date(today);
+
+  monday.setHours(0, 0, 0, 0);
+
+  monday.setDate(
+    today.getDate() - todayIndex
+  );
+
+  const targetDate = new Date(monday);
+
+  targetDate.setDate(
+    monday.getDate() + targetIndex
+  );
+
+  const day = String(
+    targetDate.getDate()
+  ).padStart(2, "0");
+
+  const month = String(
+    targetDate.getMonth() + 1
+  ).padStart(2, "0");
+
+  const year = targetDate.getFullYear();
+
+  return `${day}/${month}/${year} ${dayName}`;
+}
+
+
+function normalizeData(raw) {
+  const stores = Array.isArray(raw?.stores) ? raw.stores.map(item => ({
+    id: item.id || createId("store"),
+    supermarket: String(item.supermarket || "").trim(), 
+  })) : [];
+
+  const deliveries = Array.isArray(raw?.deliveries)
+    ? raw.deliveries.map(item => ({
+        id: item.id || createId("delivery"),
+        day: item.day || "星期一",
+        period: item.period || "早上",
+        supermarket: String(item.supermarket || "").trim(),
+        driver: String(item.driver || "").trim(),
+note: String(item.note || "").trim()
+    }))
+    : [];
+
+  return { stores, deliveries };
+}
+
+function loadData() {
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) return normalizeData(JSON.parse(current));
+
+    for (const key of LEGACY_KEYS) {
+      const legacy = localStorage.getItem(key);
+      if (legacy) {
+        const migrated = normalizeData(JSON.parse(legacy));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+        return migrated;
+      }
+    }
+  } catch (error) {
+    console.error("讀取資料失敗", error);
+  }
+  return structuredClone(defaultData);
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getItems(day, period) {
+  return data.deliveries.filter(item => item.day === day && item.period === period);
+}
+
+function renderDeliveryList(items) {
+  if (!items.length) {
+    return '<div class="empty">目前沒有安排</div>';
+  }
+
+  return items.map((item, index) => `
+    <div class="delivery">
+      <span class="delivery-number">${index + 1}</span>
+
+      <div>
+        <strong>
+          店名：${escapeHtml(item.supermarket || "未填")}
+        </strong>
+
+        <span>
+          司機：${escapeHtml(item.driver || "未填")}
+        </span>
+
+        ${
+          item.note
+            ? `<small>備註：${escapeHtml(item.note)}</small>`
+            : ""
+        }
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderSchedule() {
+  let html = dayConfig.map(([day, periods]) => `
+    <tr>
+      <td class="day-cell">${day}</td>
+      <td class="slot">${renderDeliveryList(getItems(day, "早上"))}</td>
+      <td class="slot ${periods.includes("下午") ? "" : "closed"}">
+        ${periods.includes("下午") ? renderDeliveryList(getItems(day, "下午")) : "下午不送貨"}
+      </td>
+    </tr>
+  `).join("");
+
+  html += `
+    <tr>
+      <td class="day-cell">星期日</td>
+      <td class="closed" colspan="2">休息日・不上班</td>
+    </tr>
+  `;
+
+  $("#scheduleBody").innerHTML = html;
+}
+
+function renderStatistics() {
+  const weekdays = new Set([
+    "星期一",
+    "星期二",
+    "星期三",
+    "星期四",
+    "星期五"
+  ]);
+
+  const records = {};
+
+  data.deliveries.forEach(item => {
+    const supermarket = item.supermarket.trim();
+
+    if (!weekdays.has(item.day) || !supermarket) return;
+
+    if (!records[supermarket]) {
+      records[supermarket] = [];
+    }
+
+    records[supermarket].push(item);
+  });
+
+  const names = [...new Set([
+    ...data.stores
+      .map(item => item.supermarket.trim())
+      .filter(Boolean),
+
+    ...Object.keys(records)
+  ])].sort((a, b) => {
+    const countA = records[a]?.length || 0;
+    const countB = records[b]?.length || 0;
+
+    return countB - countA || a.localeCompare(b, "zh-Hant");
+  });
+
+  $("#autoStats").innerHTML = names.length
+    ? names.map(name => {
+       const dayOrder = {
+  "星期一": 1,
+  "星期二": 2,
+  "星期三": 3,
+  "星期四": 4,
+  "星期五": 5,
+  "星期六": 6
+};
+
+const items = [...(records[name] || [])].sort((a, b) => {
+  return (dayOrder[a.day] || 99) - (dayOrder[b.day] || 99);
+});
+
+        return `
+          <article class="stat-card">
+            <span>${escapeHtml(name)}</span>
+
+            <strong>${items.length}</strong>
+
+            <small>星期一至星期五送貨次數</small>
+
+            <details class="date-details">
+              <summary>查看送貨日期</summary>
+
+              <div class="date-list">
+                ${
+                  items.length
+                    ? items.map(item => `
+                        <div class="date-item">
+                          <b>${escapeHtml(getCurrentWeekDate(item.day))}</b>
+
+                          ${
+                            item.period
+                              ? `<span>${escapeHtml(item.period)}</span>`
+                              : ""
+                          }
+
+                          ${
+                            item.driver
+                              ? `<small>司機：${escapeHtml(item.driver)}</small>`
+                              : ""
+                          }
+                        </div>
+                      `).join("")
+                    : '<div class="no-date">目前沒有送貨記錄</div>'
+                }
+              </div>
+            </details>
+          </article>
+        `;
+      }).join("")
+    : `
+      <div class="empty" style="grid-column:1/-1">
+        目前尚未建立超市資料
+      </div>
+    `;
+}
+
+function renderStoreOptions() {
+  $("#storeOptions").innerHTML = data.stores
+    .filter(item => item.supermarket)
+    .map(item => `
+<option value="${escapeHtml(item.supermarket)}"></option>
+`)
+.join("");
+}
+
+function renderStoreList() {
+
+    if (!data.stores.length) {
+        data.stores.push({
+            id: createId("store"),
+            supermarket: ""
+        });
+    }
+
+    $("#storeList").innerHTML = data.stores.map(item => `
+        <div class="store-row" data-store-id="${item.id}">
+            <input
+                data-field="supermarket"
+                value="${escapeHtml(item.supermarket)}"
+                placeholder="例如：Farley">
+
+            <button
+                class="button danger"
+                data-action="delete-store">
+                刪除
+            </button>
+        </div>
+    `).join("");
+
+    renderStoreOptions();
+}
+
+function renderEditor(item) {
+  const selected = item.supermarket || "";
+
+  return `
+    <div class="edit-row" data-delivery-id="${item.id}">
+
+      <div class="field">
+        <label>超市</label>
+        <input
+          list="storeOptions"
+          data-field="storePicker"
+          value="${escapeHtml(selected)}"
+          placeholder="搜尋或輸入超市">
+      </div>
+
+      <div class="field">
+        <label>司機</label>
+        <input
+          data-field="driver"
+          value="${escapeHtml(item.driver || "")}"
+          placeholder="例如：小明">
+      </div>
+
+      <div class="field note-field">
+        <label>備註</label>
+        <input
+          data-field="note"
+          value="${escapeHtml(item.note || "")}"
+          placeholder="選填">
+      </div>
+
+      <button
+        class="remove"
+        data-action="delete-delivery"
+        title="刪除">×</button>
+
+    </div>
+  `;
+}
+
+function renderAdminSchedule() {
+  $("#adminSchedule").innerHTML = dayConfig.map(([day, periods]) => `
+    <article class="admin-day">
+      <div class="admin-day-title">${day}${day === "星期六" ? "・只有早上" : "・早上及下午"}</div>
+      ${periods.map(period => {
+        const items = getItems(day, period);
+        return `
+          <section class="admin-period">
+            <div class="period-head">
+              <strong>${period}</strong>
+              <button class="button secondary" data-action="add-delivery" data-day="${day}" data-period="${period}">＋ 新增送貨</button>
+            </div>
+            <div class="edit-list">
+              ${items.length ? items.map(renderEditor).join("") : '<div class="empty">尚未安排，按「新增送貨」加入。</div>'}
+            </div>
+          </section>
+        `;
+      }).join("")}
+    </article>
+  `).join("");
+}
+
+function collectStoreEdits() {
+  document.querySelectorAll("[data-store-id]").forEach(row => {
+    const item = data.stores.find(
+      store => store.id === row.dataset.storeId
+    );
+
+    if (!item) return;
+
+    item.supermarket = row
+.querySelector('[data-field="supermarket"]')
+.value
+.trim();
+  });
+}
+
+function collectDeliveryEdits() {
+  document.querySelectorAll("[data-delivery-id]").forEach(row => {
+    const item = data.deliveries.find(
+      delivery => delivery.id === row.dataset.deliveryId
+    );
+
+    if (!item) return;
+
+    item.supermarket = row
+      .querySelector('[data-field="storePicker"]')
+      .value
+      .trim();
+
+    item.driver = row
+      .querySelector('[data-field="driver"]')
+      .value
+      .trim();
+
+    item.note = row
+      .querySelector('[data-field="note"]')
+      .value
+      .trim();
+  });
+}
+
+function renderAll() {
+  renderSchedule();
+  renderStatistics();
+  renderStoreList();
+  renderAdminSchedule();
+}
+
+function switchTab(tabName) {
+  document.querySelectorAll(".tab").forEach(button => button.classList.toggle("active", button.dataset.tab === tabName));
+  document.querySelectorAll(".panel").forEach(panel => panel.classList.toggle("active", panel.id === tabName));
+}
+
+function showToast(message) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+document.querySelectorAll(".tab").forEach(button => {
+  button.addEventListener("click", () => switchTab(button.dataset.tab));
+});
+
+$("#addStore").addEventListener("click", () => {
+  collectStoreEdits();
+    data.stores.push({
+        id: createId("store"),
+        supermarket: ""
+    });
+  renderStoreList();
+  const inputs = document.querySelectorAll('[data-field="supermarket"]');
+  inputs[inputs.length - 1]?.focus();
+});
+
+$("#saveStores").addEventListener("click", () => {
+  collectStoreEdits();
+
+  data.stores = data.stores.filter(item =>
+    item.supermarket.trim()
+  );
+
+  saveData();
+
+  renderStoreList();
+  renderStatistics();
+  renderAdminSchedule();
+
+  showToast("超市清單已儲存。");
+});
+
+$("#storeList").addEventListener("click", event => {
+  const button = event.target.closest('[data-action="delete-store"]');
+  if (!button) return;
+  const row = button.closest("[data-store-id]");
+  data.stores = data.stores.filter(item => item.id !== row.dataset.storeId);
+  renderStoreList();
+});
+
+$("#adminSchedule").addEventListener("click", event => {
+  const addButton = event.target.closest('[data-action="add-delivery"]');
+  if (addButton) {
+    collectDeliveryEdits();
+    data.deliveries.push({
+    id: createId("delivery"),
+    day: addButton.dataset.day,
+    period: addButton.dataset.period,
+    supermarket: "",
+    driver: "",
+    note: ""
+});
+    renderAdminSchedule();
+    return;
+  }
+
+  const deleteButton = event.target.closest('[data-action="delete-delivery"]');
+  if (deleteButton) {
+    const row = deleteButton.closest("[data-delivery-id]");
+    data.deliveries = data.deliveries.filter(item => item.id !== row.dataset.deliveryId);
+    renderAdminSchedule();
+  }
+});
+
+$("#save").addEventListener("click", () => {
+  collectStoreEdits();
+  collectDeliveryEdits();
+  data.stores = data.stores.filter(item => item.supermarket);
+  data.deliveries = data.deliveries.filter(
+    item =>
+      item.supermarket ||
+      item.driver ||
+      item.note
+  );
+  saveData();
+  renderAll();
+  switchTab("schedule");
+  showToast("送貨安排已儲存，統計已自動更新。");
+});
+
+$("#reset").addEventListener("click", () => {
+  if (!confirm("確定要清除所有超市及送貨安排嗎？")) return;
+  data = structuredClone(defaultData);
+  saveData();
+  renderAll();
+  showToast("資料已重設。");
+});
+
+renderAll();
+
+</script>
+</body>
+</html>
