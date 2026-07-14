@@ -166,7 +166,18 @@ button { -webkit-tap-highlight-color: transparent; }
   background: #f7f9fd;
 }
 
-.slot { min-height: 100px; }
+.slot{
+    min-height:100px;
+}
+
+.slot.morning{
+    background:#EAF8FF;
+}
+
+.slot.afternoon{
+    background:#FFF6CC;
+}
+    
 .delivery {
   display: grid;
   grid-template-columns: 32px 1fr;
@@ -863,10 +874,15 @@ function renderSchedule() {
   let html = dayConfig.map(([day, periods]) => `
     <tr>
       <td class="day-cell">${day}</td>
-      <td class="slot">${renderDeliveryList(getItems(day, "早上"))}</td>
-      <td class="slot ${periods.includes("下午") ? "" : "closed"}">
-        ${periods.includes("下午") ? renderDeliveryList(getItems(day, "下午")) : "下午不送貨"}
-      </td>
+     <td class="slot morning">
+    ${renderDeliveryList(getItems(day, "早上"))}
+</td>
+
+<td class="slot afternoon ${periods.includes("下午") ? "" : "closed"}">
+    ${periods.includes("下午")
+        ? renderDeliveryList(getItems(day, "下午"))
+        : "下午不送貨"}
+</td>
     </tr>
   `).join("");
 
