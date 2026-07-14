@@ -717,6 +717,15 @@ button { -webkit-tap-highlight-color: transparent; }
   <datalist id="storeOptions"></datalist>
   <div id="toast" class="toast" role="status"></div>
   <script>
+const SUPABASE_URL = "https://prohndzmxgzupokkdmak.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_WnvWNjZoWR02OQdq2ffxFg_YmH7I50E";
+
+const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+    
 const STORAGE_KEY = "supermarketDeliveryManagerV4";
 const LEGACY_KEYS = ["farleyDeliveryTableV3", "farleyDeliveryManagerV2", "farleyDeliveryManager"];
 
@@ -1275,5 +1284,6 @@ $("#reset").addEventListener("click", () => {
 renderAll();
 
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
