@@ -664,6 +664,18 @@ button { -webkit-tap-highlight-color: transparent; }
     <div id="driverManager"></div>
 
 </section>
+
+<div class="savebar">
+    <button id="reset" class="button danger">
+        重設全部資料
+    </button>
+
+    <button id="save" class="button primary">
+        儲存全部安排
+    </button>
+</div>
+  </section>
+    
   </main>
 
   <datalist id="storeOptions"></datalist>
@@ -990,58 +1002,7 @@ function renderStoreList() {
     renderStoreOptions();
 }
 
-function renderEditor(item) {
-  const storeOptions = data.stores
-    .filter(store => store.supermarket)
-    .map(store => `
-      <option
-        value="${escapeHtml(store.supermarket)}"
-        ${store.supermarket === item.supermarket ? "selected" : ""}>
-        ${escapeHtml(store.supermarket)}
-      </option>
-    `)
-    .join("");
-
-  return `
-    <div class="edit-row" data-delivery-id="${item.id}">
-
-      <div class="field">
-        <label>超市</label>
-
-        <select data-field="storePicker">
-          <option value="">請選擇超市</option>
-          ${storeOptions}
-        </select>
-      </div>
-
-      <div class="field">
-        <label>司機</label>
-        <input
-          data-field="driver"
-          value="${escapeHtml(item.driver || "")}"
-          placeholder="例如：小明">
-      </div>
-
-      <div class="field note-field">
-        <label>備註</label>
-        <input
-          data-field="note"
-          value="${escapeHtml(item.note || "")}"
-          placeholder="選填">
-      </div>
-
-      <button
-        class="remove"
-        data-action="delete-delivery"
-        title="刪除">
-        ×
-      </button>
-
-    </div>
-  `;
-}
-
-    function renderDriverManager() {
+function renderDriverManager() {
 
     const drivers = [
         { name: "Ngembang", color: "#ffe5e5" },
@@ -1052,68 +1013,120 @@ function renderEditor(item) {
 
     $("#driverManager").innerHTML = drivers.map(driver => {
 
-    const list = data.deliveries.filter(x => x.driver === driver.name);
+        const list = data.deliveries.filter(x => x.driver === driver.name);
 
-    return `
-    <div class="card" style="background:${driver.color};margin-bottom:20px;">
+        return `
+        <div class="card" style="background:${driver.color};margin-bottom:20px;">
 
-        <h3>${driver.name}</h3>
+            <h3>${driver.name}</h3>
 
-        ${list.map(item => `
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            ${list.map(item=>`
 
-                <select data-id="${item.id}" class="driver-supermarket">
+                <div class="edit-row">
 
-                    <option value="">請選擇超市</option>
+                    <select
+                        class="driver-supermarket"
+                        data-id="${item.id}">
 
-                    ${data.stores.map(store=>`
-                        <option
-                        value="${store.supermarket}"
-                        ${item.supermarket===store.supermarket?"selected":""}>
-                        ${store.supermarket}
-                        </option>
-                    `).join("")}
+                        <option value="">請選擇超市</option>
 
-                </select>
+                        ${data.stores.map(store=>`
 
-                <input
-                    class="driver-note"
-                    data-id="${item.id}"
-                    value="${item.note}"
-                    placeholder="備註">
+                            <option
+                                value="${store.supermarket}"
+                                ${item.supermarket===store.supermarket?"selected":""}>
+                                ${store.supermarket}
+                            </option>
 
-            </div>
-        `).join("")}
+                        `).join("")}
 
-        <button
-            class="button secondary add-driver-store"
-            data-driver="${driver.name}">
-            ＋新增超市
-        </button>
+                    </select>
 
-    </div>
-    `;
+                    <input
+                        class="driver-note"
+                        data-id="${item.id}"
+                        value="${item.note}"
+                        placeholder="備註">
 
-}).join("");
+                    <button
+                        class="remove delete-driver"
+                        data-id="${item.id}">
+                        ×
+                    </button>
+
+                </div>
+
+            `).join("")}
+
+            <button
+                class="button secondary add-driver-store"
+                data-driver="${driver.name}">
+                ＋ 新增超市
+            </button>
+
+        </div>
+        `;
+
+    }).join("");
 
 }
 
     $("#driverManager").addEventListener("click", e => {
 
-    if (!e.target.matches(".add-driver-store")) return;
+    // 新增超市
+    if (e.target.matches(".add-driver-store")) {
 
-    const driver = e.target.dataset.driver;
+        data.deliveries.push({
+            id: createId("delivery"),
+            day: "星期一",
+            period: "早上",
+            driver: e.target.dataset.driver,
+            supermarket: "",
+            note: ""
+        });
 
-    data.deliveries.push({
-        id: createId("delivery"),
-        day: "星期一",
-        period: "早上",
-        driver,
-        supermarket: "",
-        note: ""
-    });
+        renderDriverManager();
+        return;
+    }
 
-    renderDriverManager();
+    // 刪除
+    if (e.target.matches(".delete-driver")) {
+
+        data.deliveries = data.deliveries.filter(
+            x => x.id !== e.target.dataset.id
+        );
+
+        renderDriverManager();
+        return;
+    }
+
+});
+
+    $("#driverManager").addEventListener("change", e => {
+
+    if (!e.target.matches(".driver-supermarket")) return;
+
+    const item = data.deliveries.find(
+        x => x.id === e.target.dataset.id
+    );
+
+    if (!item) return;
+
+    item.supermarket = e.target.value;
+
+});
+
+    $("#driverManager").addEventListener("input", e => {
+
+    if (!e.target.matches(".driver-note")) return;
+
+    const item = data.deliveries.find(
+        x => x.id === e.target.dataset.id
+    );
+
+    if (!item) return;
+
+    item.note = e.target.value;
 
 });
     
@@ -1132,30 +1145,6 @@ function collectStoreEdits() {
   });
 }
 
-function collectDeliveryEdits() {
-  document.querySelectorAll("[data-delivery-id]").forEach(row => {
-    const item = data.deliveries.find(
-      delivery => delivery.id === row.dataset.deliveryId
-    );
-
-    if (!item) return;
-
-    item.supermarket = row
-      .querySelector('[data-field="storePicker"]')
-      .value
-      .trim();
-
-    item.driver = row
-      .querySelector('[data-field="driver"]')
-      .value
-      .trim();
-
-    item.note = row
-      .querySelector('[data-field="note"]')
-      .value
-      .trim();
-  });
-}
 
 function renderAll() {
     renderSchedule();
@@ -1203,7 +1192,7 @@ $("#saveStores").addEventListener("click", () => {
 
   renderStoreList();
   renderStatistics();
-  renderAdminSchedule();
+  renderDriverManager();
 
   showToast("超市清單已儲存。");
 });
@@ -1216,33 +1205,9 @@ $("#storeList").addEventListener("click", event => {
   renderStoreList();
 });
 
-$("#adminSchedule").addEventListener("click", event => {
-  const addButton = event.target.closest('[data-action="add-delivery"]');
-  if (addButton) {
-    collectDeliveryEdits();
-    data.deliveries.push({
-    id: createId("delivery"),
-    day: addButton.dataset.day,
-    period: addButton.dataset.period,
-    supermarket: "",
-    driver: "",
-    note: ""
-});
-    renderDriverManager();
-    return;
-  }
-
-  const deleteButton = event.target.closest('[data-action="delete-delivery"]');
-  if (deleteButton) {
-    const row = deleteButton.closest("[data-delivery-id]");
-    data.deliveries = data.deliveries.filter(item => item.id !== row.dataset.deliveryId);
-    renderAdminSchedule();
-  }
-});
 
 $("#save").addEventListener("click", () => {
   collectStoreEdits();
-  collectDeliveryEdits();
   data.stores = data.stores.filter(item => item.supermarket);
   data.deliveries = data.deliveries.filter(
     item =>
@@ -1250,6 +1215,8 @@ $("#save").addEventListener("click", () => {
       item.driver ||
       item.note
   );
+  renderSchedule();
+  renderStatistics();
   saveData();
   renderAll();
   switchTab("schedule");
