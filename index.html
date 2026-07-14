@@ -868,7 +868,7 @@ async function loadData() {
       : structuredClone(defaultData);
   }
 
-  loadData();
+  renderAll();
 }
 
 async function saveData() {
@@ -1282,10 +1282,8 @@ $("#saveStores").addEventListener("click", async () => {
 
 const saved = await saveData();
 if (!saved) return;
-  
-  renderStoreList();
-  renderStatistics();
-  renderDriverManager();
+
+await loadData();
 
   showToast("超市清單已儲存。");
 });
@@ -1310,23 +1308,27 @@ $("#save").addEventListener("click", async () => {
   );
   renderSchedule();
   renderStatistics();
-  const saved = await saveData();
+ const saved = await saveData();
 if (!saved) return;
-  renderAll();
-  switchTab("schedule");
-  showToast("送貨安排已儲存，統計已自動更新。");
+
+await loadData();
+
+switchTab("schedule");
+showToast("送貨安排已儲存，統計已自動更新。");
 });
 
 $("#reset").addEventListener("click", async () => {
   if (!confirm("確定要清除所有超市及送貨安排嗎？")) return;
   data = structuredClone(defaultData);
-  const saved = await saveData();
+const saved = await saveData();
 if (!saved) return;
-  renderAll();
-  showToast("資料已重設。");
+
+await loadData();
+
+showToast("資料已重設。");
 });
 
-renderAll();
+loadData();
 
 </script>
  
