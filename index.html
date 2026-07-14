@@ -653,20 +653,15 @@ button { -webkit-tap-highlight-color: transparent; }
     </div>
 
     <section class="card">
-        <div class="card-heading">
-            <div>
-                <h3>星期一至星期六送貨安排</h3>
-                <p>每個早上或下午都可以新增多筆送貨。</p>
-            </div>
+
+    <div class="card-heading">
+        <div>
+            <h3>四位司機送貨管理</h3>
+            <p>每位司機可新增多間超市及備註。</p>
         </div>
-
-        <div id="adminSchedule"></div>
-    </section>
-
-    <div class="savebar">
-        <button id="reset" class="button danger">重設全部資料</button>
-        <button id="save" class="button primary">儲存全部安排</button>
     </div>
+
+    <div id="driverManager"></div>
 
 </section>
   </main>
@@ -1046,28 +1041,82 @@ function renderEditor(item) {
   `;
 }
 
-function renderAdminSchedule() {
-  $("#adminSchedule").innerHTML = dayConfig.map(([day, periods]) => `
-    <article class="admin-day">
-      <div class="admin-day-title">${day}${day === "星期六" ? "・只有早上" : "・早上及下午"}</div>
-      ${periods.map(period => {
-        const items = getItems(day, period);
-        return `
-          <section class="admin-period">
-            <div class="period-head">
-              <strong>${period}</strong>
-              <button class="button secondary" data-action="add-delivery" data-day="${day}" data-period="${period}">＋ 新增送貨</button>
+    function renderDriverManager() {
+
+    const drivers = [
+        { name: "Ngembang", color: "#ffe5e5" },
+        { name: "Lembang", color: "#ffffff" },
+        { name: "Wisman", color: "#eaffea" },
+        { name: "Patrick", color: "#e8f4ff" }
+    ];
+
+    $("#driverManager").innerHTML = drivers.map(driver => {
+
+    const list = data.deliveries.filter(x => x.driver === driver.name);
+
+    return `
+    <div class="card" style="background:${driver.color};margin-bottom:20px;">
+
+        <h3>${driver.name}</h3>
+
+        ${list.map(item => `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+
+                <select data-id="${item.id}" class="driver-supermarket">
+
+                    <option value="">請選擇超市</option>
+
+                    ${data.stores.map(store=>`
+                        <option
+                        value="${store.supermarket}"
+                        ${item.supermarket===store.supermarket?"selected":""}>
+                        ${store.supermarket}
+                        </option>
+                    `).join("")}
+
+                </select>
+
+                <input
+                    class="driver-note"
+                    data-id="${item.id}"
+                    value="${item.note}"
+                    placeholder="備註">
+
             </div>
-            <div class="edit-list">
-              ${items.length ? items.map(renderEditor).join("") : '<div class="empty">尚未安排，按「新增送貨」加入。</div>'}
-            </div>
-          </section>
-        `;
-      }).join("")}
-    </article>
-  `).join("");
+        `).join("")}
+
+        <button
+            class="button secondary add-driver-store"
+            data-driver="${driver.name}">
+            ＋新增超市
+        </button>
+
+    </div>
+    `;
+
+}).join("");
+
 }
 
+    $("#driverManager").addEventListener("click", e => {
+
+    if (!e.target.matches(".add-driver-store")) return;
+
+    const driver = e.target.dataset.driver;
+
+    data.deliveries.push({
+        id: createId("delivery"),
+        day: "星期一",
+        period: "早上",
+        driver,
+        supermarket: "",
+        note: ""
+    });
+
+    renderDriverManager();
+
+});
+    
 function collectStoreEdits() {
   document.querySelectorAll("[data-store-id]").forEach(row => {
     const item = data.stores.find(
@@ -1109,10 +1158,10 @@ function collectDeliveryEdits() {
 }
 
 function renderAll() {
-  renderSchedule();
-  renderStatistics();
-  renderStoreList();
-  renderAdminSchedule();
+    renderSchedule();
+    renderStatistics();
+    renderStoreList();
+    renderDriverManager();
 }
 
 function switchTab(tabName) {
@@ -1179,7 +1228,7 @@ $("#adminSchedule").addEventListener("click", event => {
     driver: "",
     note: ""
 });
-    renderAdminSchedule();
+    renderDriverManager();
     return;
   }
 
