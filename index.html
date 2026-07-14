@@ -1071,15 +1071,15 @@ function renderDriverManager() {
 
                         <option value="">請選擇超市</option>
 
-                        ${data.stores.map(store=>`
-
-                            <option
-                                value="${store.supermarket}"
-                                ${item.supermarket===store.supermarket?"selected":""}>
-                                ${store.supermarket}
-                            </option>
-
-                        `).join("")}
+                       ${data.stores
+    .filter(store => store.supermarket && store.supermarket.trim())
+    .map(store => `
+        <option
+            value="${escapeHtml(store.supermarket)}"
+            ${item.supermarket === store.supermarket ? "selected" : ""}>
+            ${escapeHtml(store.supermarket)}
+        </option>
+    `).join("")}
 
                     </select>
 
