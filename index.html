@@ -426,6 +426,16 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 .toast.show { opacity: 1; transform: none; }
 
+    .morning-header{
+    background:#87CEEB !important;
+    color:#0f3d5c !important;
+}
+
+.afternoon-header{
+    background:#FFE58F !important;
+    color:#7a4b00 !important;
+}
+
 @media (max-width: 900px) {
   .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .edit-row { grid-template-columns: 1fr 1fr; }
@@ -581,13 +591,13 @@ button { -webkit-tap-highlight-color: transparent; }
 
       <div class="table-shell">
         <table class="schedule-table">
-          <thead>
-            <tr>
-              <th>星期</th>
-              <th>早上送貨地點</th>
-              <th>下午送貨地點</th>
-            </tr>
-          </thead>
+         <thead>
+    <tr>
+        <th>星期</th>
+        <th class="morning-header">🌥️ 早上送貨地點</th>
+        <th class="afternoon-header">🌞 下午送貨地點</th>
+    </tr>
+</thead>
           <tbody id="scheduleBody"></tbody>
         </table>
       </div>
