@@ -749,7 +749,8 @@ const defaultData = {
   deliveries: []
 };
 
-let data = loadData();
+let data = structuredClone(defaultData);
+let cloudRowId = null;
 const $ = selector => document.querySelector(selector);
 
 function createId(prefix = "id") {
@@ -840,27 +841,67 @@ note: String(item.note || "").trim()
   return { stores, deliveries };
 }
 
-function loadData() {
+async function loadData() {
   try {
-    const current = localStorage.getItem(STORAGE_KEY);
-    if (current) return normalizeData(JSON.parse(current));
+    const { data: rows, error } = await supabaseClient
+      .from("delivery_data")
+      .select("id, data, created_at")
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-    for (const key of LEGACY_KEYS) {
-      const legacy = localStorage.getItem(key);
-      if (legacy) {
-        const migrated = normalizeData(JSON.parse(legacy));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-        return migrated;
-      }
+    if (error) throw error;
+
+    if (rows && rows.length > 0) {
+      cloudRowId = rows[0].id;
+      data = normalizeData(rows[0].data);
+    } else {
+      data = structuredClone(defaultData);
     }
+
   } catch (error) {
-    console.error("讀取資料失敗", error);
+    console.error("Supabase 讀取失敗：", error);
+
+    const local = localStorage.getItem(STORAGE_KEY);
+
+    data = local
+      ? normalizeData(JSON.parse(local))
+      : structuredClone(defaultData);
   }
-  return structuredClone(defaultData);
+
+  loadData();
 }
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+async function saveData() {
+  try {
+    let result;
+
+    if (cloudRowId) {
+      result = await supabaseClient
+        .from("delivery_data")
+        .update({ data })
+        .eq("id", cloudRowId);
+    } else {
+      result = await supabaseClient
+        .from("delivery_data")
+        .insert({ data })
+        .select("id")
+        .single();
+
+      if (!result.error) {
+        cloudRowId = result.data.id;
+      }
+    }
+
+    if (result.error) throw result.error;
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+
+  } catch (error) {
+    console.error("Supabase 儲存失敗：", error);
+    showToast("雲端儲存失敗，請檢查權限。");
+    return false;
+  }
 }
 
 function getItems(day, period) {
@@ -1067,7 +1108,7 @@ function renderDriverManager() {
         const list = data.deliveries.filter(x => x.driver === driver.name);
 
         return `
-        <div class="card" style="background:linear-gradient(180deg,#ffffff 0%,${driver.color} 100%);margin-bottom:20px;"
+        <div class="card" style="background:linear-gradient(180deg,#ffffff 0%,${driver.color} 100%);margin-bottom:20px;">
 
             <h3>${driver.name}</h3>
 
@@ -1232,15 +1273,16 @@ $("#addStore").addEventListener("click", () => {
   inputs[inputs.length - 1]?.focus();
 });
 
-$("#saveStores").addEventListener("click", () => {
+$("#saveStores").addEventListener("click", async () => {
   collectStoreEdits();
 
   data.stores = data.stores.filter(item =>
     item.supermarket.trim()
   );
 
-  saveData();
-
+const saved = await saveData();
+if (!saved) return;
+  
   renderStoreList();
   renderStatistics();
   renderDriverManager();
@@ -1257,7 +1299,7 @@ $("#storeList").addEventListener("click", event => {
 });
 
 
-$("#save").addEventListener("click", () => {
+$("#save").addEventListener("click", async () => {
   collectStoreEdits();
   data.stores = data.stores.filter(item => item.supermarket);
   data.deliveries = data.deliveries.filter(
@@ -1268,16 +1310,18 @@ $("#save").addEventListener("click", () => {
   );
   renderSchedule();
   renderStatistics();
-  saveData();
+  const saved = await saveData();
+if (!saved) return;
   renderAll();
   switchTab("schedule");
   showToast("送貨安排已儲存，統計已自動更新。");
 });
 
-$("#reset").addEventListener("click", () => {
+$("#reset").addEventListener("click", async () => {
   if (!confirm("確定要清除所有超市及送貨安排嗎？")) return;
   data = structuredClone(defaultData);
-  saveData();
+  const saved = await saveData();
+if (!saved) return;
   renderAll();
   showToast("資料已重設。");
 });
