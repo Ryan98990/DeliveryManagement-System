@@ -1045,19 +1045,19 @@ function renderStoreList() {
 
 function renderDriverManager() {
 
-    const drivers = [
-        { name: "Ngembang", color: "#ffe5e5" },
-        { name: "Lembang", color: "#ffffff" },
-        { name: "Wisman", color: "#eaffea" },
-        { name: "Patrick", color: "#e8f4ff" }
-    ];
+   const drivers = [
+    { name: "Ngembang", color: "#FFD6D6" }, // 淺紅（深一點）
+    { name: "Lembang", color: "#F2F2F2" },  // 淺灰白
+    { name: "Wisman", color: "#DDF7DD" },   // 淺綠（深一點）
+    { name: "Patrick", color: "#D6EAFF" }   // 淺藍（深一點）
+];
 
     $("#driverManager").innerHTML = drivers.map(driver => {
 
         const list = data.deliveries.filter(x => x.driver === driver.name);
 
         return `
-        <div class="card" style="background:${driver.color};margin-bottom:20px;">
+        <div class="card" style="background:linear-gradient(180deg,#ffffff 0%,${driver.color} 100%);margin-bottom:20px;"
 
             <h3>${driver.name}</h3>
 
