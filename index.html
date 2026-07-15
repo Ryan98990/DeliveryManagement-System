@@ -34,24 +34,23 @@ button, input { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
 
 .hero{
-    position:relative;
-    overflow:hidden;
-    color:#fff;
-    padding:42px 0 48px;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    padding: 42px 0 48px;
 
     background:
-        radial-gradient(circle at 15% 15%, rgba(255,255,255,.08) 0%, transparent 28%),
-        radial-gradient(circle at 88% 18%, rgba(122,162,255,.18) 0%, transparent 35%),
-        radial-gradient(circle at 70% 82%, rgba(0,210,255,.10) 0%, transparent 32%),
-        linear-gradient(
-            135deg,
-            #0f2d73 0%,
-            #184fb8 38%,
-            #2563eb 68%,
-            #355fe6 100%
-        );
+    radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(0,255,255,.10), transparent 35%),
+    linear-gradient(
+        135deg,
+        #0b2f78 0%,
+        #1557d6 35%,
+        #2563eb 65%,
+        #5b4dff 100%
+    );
 
-    box-shadow:0 18px 45px rgba(20,55,160,.28);
+    box-shadow: 0 18px 45px rgba(20,55,160,.28);
 }
     
 .hero::before{
@@ -60,11 +59,11 @@ button { -webkit-tap-highlight-color: transparent; }
     inset:0;
 
     background:
-        repeating-linear-gradient(
-            -32deg,
-            transparent 0 80px,
-            rgba(255,255,255,.035) 80px 84px
-        );
+    repeating-linear-gradient(
+        -35deg,
+        transparent 0 90px,
+        rgba(255,255,255,.03) 90px 94px
+    );
 
     pointer-events:none;
 }
